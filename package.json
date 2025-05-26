@@ -2,12 +2,16 @@
   "type": "module",
   "dependencies": {
     "axios": "^1.9.0",
-    "sha1": "^1.1.1"
+    "sha1": "^1.1.1",
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "compression": "^1.7.4"
   },
   "scripts": {
     "update-data": "node update.js",
     "group-data": "node group.js",
     "update-data-force": "node update.js --force",
-    "group-data-force": "node group.js --force"
+    "group-data-force": "node group.js --force",
+    "start": "node server.js"
   }
 }
