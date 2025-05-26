@@ -9,6 +9,7 @@ import { getSkins } from './services/skins.js';
 import { getStickers } from './services/stickers.js';
 import { getCollections } from './services/collections.js';
 import { getCrates } from './services/crates.js';
+import { loadTranslations } from './services/translations.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -79,6 +80,7 @@ app.get('/api/:language/all.json', validateLanguage, async (req, res) => {
     const data = await fs.readFile(filePath, 'utf8');
     res.json(JSON.parse(data));
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -87,12 +89,10 @@ app.get('/api/:language/all.json', validateLanguage, async (req, res) => {
 app.get('/api/:language/skins.json', validateLanguage, validateQuery, async (req, res) => {
   try {
     const { language } = req.params;
+    const filePath = join(__dirname, 'public', 'api', language, 'skins.json');
+    const data = await fs.readFile(filePath, 'utf8');
+    let skins = JSON.parse(data);
     const { weapon, rarity, collection, crate } = req.query;
-    
-    // 获取基础皮肤数据
-    let skins = await getSkins(language);
-    
-    // 应用过滤条件
     if (weapon) {
       skins = skins.filter(skin => skin.weapon.type === weapon);
     }
@@ -109,9 +109,9 @@ app.get('/api/:language/skins.json', validateLanguage, validateQuery, async (req
         skin.crates.some(c => c.id === crate)
       );
     }
-    
     res.json(skins);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -120,12 +120,10 @@ app.get('/api/:language/skins.json', validateLanguage, validateQuery, async (req
 app.get('/api/:language/skins_not_grouped.json', validateLanguage, validateQuery, async (req, res) => {
   try {
     const { language } = req.params;
+    const filePath = join(__dirname, 'public', 'api', language, 'skins_not_grouped.json');
+    const data = await fs.readFile(filePath, 'utf8');
+    let skins = JSON.parse(data);
     const { weapon, rarity, collection, crate } = req.query;
-    
-    // 获取未分组的皮肤数据
-    let skins = await getSkins(language, false);
-    
-    // 应用过滤条件
     if (weapon) {
       skins = skins.filter(skin => skin.weapon.type === weapon);
     }
@@ -142,9 +140,9 @@ app.get('/api/:language/skins_not_grouped.json', validateLanguage, validateQuery
         skin.crates.some(c => c.id === crate)
       );
     }
-    
     res.json(skins);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -153,9 +151,11 @@ app.get('/api/:language/skins_not_grouped.json', validateLanguage, validateQuery
 app.get('/api/:language/stickers.json', validateLanguage, async (req, res) => {
   try {
     const { language } = req.params;
-    const stickers = await getStickers(language);
-    res.json(stickers);
+    const filePath = join(__dirname, 'public', 'api', language, 'stickers.json');
+    const data = await fs.readFile(filePath, 'utf8');
+    res.json(JSON.parse(data));
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -164,9 +164,11 @@ app.get('/api/:language/stickers.json', validateLanguage, async (req, res) => {
 app.get('/api/:language/collections.json', validateLanguage, async (req, res) => {
   try {
     const { language } = req.params;
-    const collections = await getCollections(language);
-    res.json(collections);
+    const filePath = join(__dirname, 'public', 'api', language, 'collections.json');
+    const data = await fs.readFile(filePath, 'utf8');
+    res.json(JSON.parse(data));
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -175,9 +177,11 @@ app.get('/api/:language/collections.json', validateLanguage, async (req, res) =>
 app.get('/api/:language/crates.json', validateLanguage, async (req, res) => {
   try {
     const { language } = req.params;
-    const crates = await getCrates(language);
-    res.json(crates);
+    const filePath = join(__dirname, 'public', 'api', language, 'crates.json');
+    const data = await fs.readFile(filePath, 'utf8');
+    res.json(JSON.parse(data));
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -187,20 +191,15 @@ app.get('/api/:language/search', validateLanguage, async (req, res) => {
   try {
     const { language } = req.params;
     const { q } = req.query;
-    
     if (!q) {
       return res.status(400).json({ error: 'Search query is required' });
     }
-    
-    // 获取所有相关数据
     const [skins, stickers, collections, crates] = await Promise.all([
-      getSkins(language),
-      getStickers(language),
-      getCollections(language),
-      getCrates(language)
+      fs.readFile(join(__dirname, 'public', 'api', language, 'skins.json'), 'utf8').then(data => JSON.parse(data)),
+      fs.readFile(join(__dirname, 'public', 'api', language, 'stickers.json'), 'utf8').then(data => JSON.parse(data)),
+      fs.readFile(join(__dirname, 'public', 'api', language, 'collections.json'), 'utf8').then(data => JSON.parse(data)),
+      fs.readFile(join(__dirname, 'public', 'api', language, 'crates.json'), 'utf8').then(data => JSON.parse(data))
     ]);
-    
-    // 搜索逻辑
     const results = {
       skins: skins.filter(item => 
         item.name.toLowerCase().includes(q.toLowerCase()) ||
@@ -216,9 +215,9 @@ app.get('/api/:language/search', validateLanguage, async (req, res) => {
         item.name.toLowerCase().includes(q.toLowerCase())
       )
     };
-    
     res.json(results);
   } catch (error) {
+    console.error(error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

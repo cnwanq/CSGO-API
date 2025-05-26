@@ -166,7 +166,7 @@ const parseItem = (item, items) => {
     };
 };
 
-export const getSkins = () => {
+export const getSkins = (language) => {
     const { itemsGame, items, cratesBySkins } = state;
     const { folder } = languageData;
 
@@ -216,4 +216,5 @@ export const getSkins = () => {
     ].filter((skin) => !skin.name.includes("null") && skin.rarity.id);
 
     saveDataJson(`./public/api/${folder}/skins.json`, skins);
+    return skins;
 };

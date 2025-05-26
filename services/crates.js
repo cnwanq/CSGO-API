@@ -175,7 +175,7 @@ const parseItem = (item, prefabs) => {
     };
 };
 
-export const getCrates = () => {
+export const getCrates = (language) => {
     const { items, prefabs } = state;
     const { folder } = languageData;
 
@@ -185,4 +185,5 @@ export const getCrates = () => {
         .filter((crate) => crate.name);
 
     saveDataJson(`./public/api/${folder}/crates.json`, crates);
+    return crates;
 };

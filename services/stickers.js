@@ -192,11 +192,12 @@ const parseItem = (item) => {
     };
 };
 
-export const getStickers = () => {
+export const getStickers = (language) => {
     const { stickerKits } = state;
     const { folder } = languageData;
 
     const stickers = stickerKits.filter(isSticker).map(parseItem);
 
     saveDataJson(`./public/api/${folder}/stickers.json`, stickers);
+    return stickers;
 };
